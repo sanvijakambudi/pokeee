@@ -1,0 +1,640 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#0d0b1a;
+  color:#e8e0f0;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── starfield canvas ── */
+#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ── aurora blobs ── */
+.aurora{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.18;pointer-events:none;z-index:0;animation:drift 12s ease-in-out infinite alternate}
+.aurora-1{width:500px;height:500px;background:#6c3fc5;top:-120px;left:-100px;animation-delay:0s}
+.aurora-2{width:420px;height:420px;background:#c05fa3;bottom:-80px;right:-80px;animation-delay:-4s}
+.aurora-3{width:300px;height:300px;background:#3a8fb5;top:40%;left:50%;animation-delay:-8s}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(30px,20px) scale(1.08)}}
+
+/* ── layout ── */
+.shell{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:0 16px 80px}
+
+/* ── header ── */
+.hdr{
+  padding:28px 0 10px;
+  display:flex;align-items:center;gap:16px;
+  animation:fadeUp .7s ease both;
+}
+.hdr-gem{
+  width:48px;height:48px;border-radius:14px;
+  background:linear-gradient(135deg,#a78bfa,#7c3aed);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  box-shadow:0 0 24px rgba(124,58,237,0.5);
+}
+.hdr-title{
+  font-family:'Playfair Display',serif;
+  font-size:26px;font-weight:700;
+  background:linear-gradient(90deg,#e0c8ff,#f9c5d1,#fde68a);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hdr-sub{
+  font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  color:#9d8cb8;margin-top:2px;font-family:'DM Mono',monospace;
+}
+.hdr-badge{
+  margin-left:auto;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:30px;padding:5px 14px;
+  font-size:11px;color:#c4b5d6;
+  font-family:'DM Mono',monospace;letter-spacing:.06em;
+}
+
+/* ── glass card base ── */
+.glass{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
+  backdrop-filter:blur(16px);
+}
+
+/* ── upload zone ── */
+.upload{
+  padding:36px 28px;text-align:center;
+  cursor:pointer;transition:background .2s,border-color .2s;
+  position:relative;margin-bottom:16px;
+  animation:fadeUp .7s .1s ease both;
+}
+.upload:hover{background:rgba(167,139,250,.07);border-color:rgba(167,139,250,.35)}
+.upload.drag{background:rgba(167,139,250,.1);border-color:#a78bfa}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-orb{
+  width:60px;height:60px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(167,139,250,.25),rgba(196,91,163,.2));
+  border:1px solid rgba(167,139,250,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin:0 auto 14px;
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(167,139,250,.4)}50%{box-shadow:0 0 0 12px rgba(167,139,250,0)}}
+.upload h2{
+  font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+  color:#e0d4f5;margin-bottom:6px;
+}
+.upload p{font-size:13px;color:#7d6f9a;margin-bottom:18px}
+.btn-browse{
+  display:inline-block;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:#fff;font-weight:500;font-size:13px;
+  padding:9px 22px;border-radius:30px;border:none;cursor:pointer;
+  box-shadow:0 4px 20px rgba(124,58,237,.4);
+  transition:transform .15s,box-shadow .15s;
+}
+.btn-browse:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,58,237,.55)}
+.or-sep{
+  display:flex;align-items:center;gap:10px;
+  margin:16px 0 12px;
+}
+.or-sep span{font-size:11px;color:#5a4f72;font-family:'DM Mono',monospace;white-space:nowrap}
+.or-sep::before,.or-sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+
+textarea#notes{
+  width:100%;min-height:90px;resize:vertical;
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:14px 16px;
+  font-family:'DM Sans',sans-serif;font-size:13.5px;color:#d8ccee;
+  outline:none;transition:border-color .2s;
+  position:relative;z-index:2;
+}
+textarea#notes:focus{border-color:rgba(167,139,250,.5)}
+textarea#notes::placeholder{color:#4a4065}
+
+.file-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(110,231,183,.1);border:1px solid rgba(110,231,183,.25);
+  border-radius:30px;padding:6px 14px;
+  font-size:12px;color:#6ee7b7;font-family:'DM Mono',monospace;
+  margin-bottom:14px;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── action grid ── */
+.grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:12px;
+  animation:fadeUp .7s .2s ease both;
+}
+.acard{
+  padding:18px 16px;cursor:pointer;border-radius:18px;
+  transition:transform .2s,box-shadow .2s,background .2s;
+  position:relative;overflow:hidden;
+}
+.acard::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 80% 20%,var(--glow) 0%,transparent 65%);
+  opacity:0;transition:opacity .3s;
+}
+.acard:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.acard:hover::before{opacity:1}
+.acard:active{transform:scale(.97)}
+
+.acard.v-blue{--glow:rgba(96,165,250,.35);background:rgba(59,130,246,.08);border:1px solid rgba(96,165,250,.18)}
+.acard.v-mint{--glow:rgba(52,211,153,.35);background:rgba(16,185,129,.07);border:1px solid rgba(52,211,153,.18)}
+.acard.v-rose{--glow:rgba(251,113,133,.35);background:rgba(244,63,94,.07);border:1px solid rgba(251,113,133,.18)}
+.acard.v-amber{--glow:rgba(251,191,36,.35);background:rgba(245,158,11,.07);border:1px solid rgba(251,191,36,.18)}
+
+.acard-icon{
+  font-size:26px;margin-bottom:10px;
+  filter:drop-shadow(0 2px 6px rgba(255,255,255,.15));
+}
+.acard h3{
+  font-family:'Playfair Display',serif;font-size:15px;font-weight:700;
+  color:#e0d4f5;margin-bottom:4px;
+}
+.acard p{font-size:11.5px;color:#7d6f9a;line-height:1.5}
+
+/* ── ELI10 button ── */
+.eli-btn{
+  width:100%;padding:18px 24px;border:none;cursor:pointer;
+  border-radius:20px;margin-bottom:14px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444,#ec4899);
+  display:flex;align-items:center;gap:14px;
+  font-family:'Playfair Display',serif;
+  font-size:18px;font-weight:700;color:#fff;
+  box-shadow:0 6px 28px rgba(239,68,68,.35);
+  transition:transform .2s,box-shadow .2s;
+  animation:fadeUp .7s .3s ease both;
+  position:relative;overflow:hidden;
+}
+.eli-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);
+}
+.eli-btn:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 12px 36px rgba(239,68,68,.45)}
+.eli-btn:active{transform:scale(.98)}
+.eli-tag{
+  margin-left:auto;
+  background:rgba(0,0,0,.25);border-radius:20px;
+  padding:3px 10px;font-size:11px;font-family:'DM Mono',monospace;
+  font-weight:400;letter-spacing:.05em;
+}
+
+/* ── result pane ── */
+.result-wrap{display:none;animation:fadeUp .5s ease both}
+.result-wrap.on{display:block}
+
+.tabs-row{
+  display:flex;gap:0;
+  overflow-x:auto;padding:0 2px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  margin-bottom:0;scrollbar-width:none;
+}
+.tabs-row::-webkit-scrollbar{display:none}
+.tab-btn{
+  padding:12px 18px;font-size:12px;letter-spacing:.05em;
+  font-family:'DM Mono',monospace;color:#5a4f72;
+  cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .2s,border-color .2s;white-space:nowrap;
+  background:none;border-top:none;border-left:none;border-right:none;
+}
+.tab-btn.on{color:#c4a8ff;border-bottom-color:#a78bfa}
+
+.result-body{padding:24px}
+
+.panel{display:none}
+.panel.on{display:block;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── loading ── */
+.loading{
+  display:flex;align-items:center;gap:14px;
+  color:#7d6f9a;font-size:13px;padding:12px 0;
+}
+.ring{
+  width:22px;height:22px;flex-shrink:0;
+  border:2.5px solid rgba(255,255,255,.08);
+  border-top-color:#a78bfa;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── summary / keypoints output ── */
+.prose{font-size:14px;line-height:1.9;color:#cfc0e8}
+.prose h3{
+  font-family:'Playfair Display',serif;font-size:16px;font-weight:700;
+  color:#e0d4f5;margin:20px 0 8px;
+  padding-left:14px;
+  border-left:3px solid #a78bfa;
+}
+.prose ul{padding-left:22px;margin-bottom:10px}
+.prose li{margin-bottom:6px;color:#c4b5d6}
+.prose strong{color:#e8d9ff;font-weight:500}
+
+.icse-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);
+  border-radius:30px;padding:4px 12px;
+  font-size:11px;color:#a78bfa;font-family:'DM Mono',monospace;
+  letter-spacing:.06em;margin-bottom:16px;
+}
+
+/* ── quiz ── */
+.qcard{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:20px;margin-bottom:14px;
+}
+.qcard .q{
+  font-family:'Playfair Display',serif;font-size:15px;font-weight:700;
+  color:#ddd4f0;margin-bottom:14px;line-height:1.5;
+}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:10px 14px;
+  font-size:13px;color:#b0a0cc;cursor:pointer;
+  transition:all .15s;
+}
+.opt:hover{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:#d6c8f0}
+.opt.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#a7f3d0}
+.opt.bad{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.3);color:#fecdd3}
+.olabel{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.07);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#9d8cb8;
+}
+.opt.ok .olabel{background:rgba(52,211,153,.25);color:#6ee7b7}
+.opt.bad .olabel{background:rgba(251,113,133,.25);color:#fca5a5}
+.qfb{
+  font-size:12.5px;border-radius:10px;padding:10px 14px;
+  margin-top:10px;display:none;line-height:1.6;
+  border-left:3px solid transparent;
+}
+.qfb.ok{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.4);color:#a7f3d0}
+.qfb.bad{background:rgba(251,113,133,.07);border-color:rgba(251,113,133,.4);color:#fecdd3}
+.score-bar{
+  background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);
+  border-radius:12px;padding:14px 18px;
+  font-family:'Playfair Display',serif;font-size:16px;color:#c4a8ff;
+  margin-bottom:16px;display:none;text-align:center;
+}
+
+/* ── flashcard ── */
+.fc-wrap{perspective:1200px;margin-bottom:16px}
+.fc{
+  width:100%;min-height:180px;position:relative;
+  transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
+}
+.fc.flip{transform:rotateY(180deg)}
+.fc-f,.fc-b{
+  position:absolute;width:100%;min-height:180px;
+  border-radius:20px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:28px 24px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+.fc-f{
+  background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(196,91,163,.12));
+  border:1px solid rgba(167,139,250,.25);
+}
+.fc-b{
+  background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(239,68,68,.08));
+  border:1px solid rgba(251,191,36,.25);
+  transform:rotateY(180deg);
+}
+.fc-lbl{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;
+  color:#7d6f9a;text-transform:uppercase;margin-bottom:12px;
+}
+.fc-txt{
+  font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+  color:#e0d4f5;line-height:1.5;
+}
+.fc-b .fc-txt{color:#fde68a}
+.fc-hint{margin-top:14px;font-size:11px;color:#5a4f72;font-family:'DM Mono',monospace}
+.fc-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px}
+.fc-nav button{
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  color:#a78bfa;font-size:18px;cursor:pointer;
+  transition:all .15s;
+}
+.fc-nav button:hover{background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.3)}
+.fc-nav span{font-family:'DM Mono',monospace;font-size:12px;color:#7d6f9a}
+
+/* ── ELI10 output ── */
+.eli-out{
+  background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(239,68,68,.05));
+  border:1px solid rgba(251,191,36,.2);border-radius:18px;
+  padding:22px 20px;font-size:14.5px;line-height:1.9;color:#fde8c8;
+}
+.eli-hd{
+  font-family:'Playfair Display',serif;font-size:17px;font-weight:700;
+  color:#fde68a;margin-bottom:14px;display:flex;align-items:center;gap:10px;
+}
+
+/* ── empty ── */
+.empty{text-align:center;padding:36px;color:#5a4f72}
+.empty .e-ico{font-size:40px;margin-bottom:10px}
+.empty p{font-size:13px}
+
+/* ── animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<canvas id="stars"></canvas>
+<div class="aurora aurora-1"></div>
+<div class="aurora aurora-2"></div>
+<div class="aurora aurora-3"></div>
+
+<div class="shell">
+
+  <div class="hdr">
+    <div class="hdr-gem">🧠</div>
+    <div>
+      <div class="hdr-title">Study Buddy</div>
+      <div class="hdr-sub">AI-Powered · ICSE Edition</div>
+    </div>
+    <div class="hdr-badge">✦ Smart Notes</div>
+  </div>
+
+  <div class="glass upload" id="dz">
+    <input type="file" id="fi" accept=".txt,.pdf,.png,.jpg,.jpeg">
+    <div class="upload-orb">📄</div>
+    <h2>Drop your notes here</h2>
+    <p>Textbook pages, PDFs, images — anything goes</p>
+    <span class="btn-browse" onclick="document.getElementById('fi').click();event.stopPropagation()">Browse Files</span>
+    <div class="or-sep"><span>or paste below</span></div>
+    <textarea id="notes" placeholder="Paste chapter text, notes, or any study material…" onclick="event.stopPropagation()"></textarea>
+  </div>
+
+  <div id="pill-wrap"></div>
+
+  <div class="grid">
+    <div class="acard glass v-blue" onclick="go('summary')">
+      <div class="acard-icon">📋</div>
+      <h3>Summarise</h3>
+      <p>ICSE-style structured chapter summary</p>
+    </div>
+    <div class="acard glass v-mint" onclick="go('quiz')">
+      <div class="acard-icon">❓</div>
+      <h3>Generate Quiz</h3>
+      <p>MCQs with answers & explanations</p>
+    </div>
+    <div class="acard glass v-rose" onclick="go('flashcards')">
+      <div class="acard-icon">🃏</div>
+      <h3>Flashcards</h3>
+      <p>Key terms to flip through & memorise</p>
+    </div>
+    <div class="acard glass v-amber" onclick="go('keypoints')">
+      <div class="acard-icon">⭐</div>
+      <h3>Key Points</h3>
+      <p>Must-know facts, dates & formulas</p>
+    </div>
+  </div>
+
+  <button class="eli-btn" onclick="go('eli5')">
+    <span style="font-size:28px">👧</span>
+    Explain Like I'm 10
+    <span class="eli-tag">ELI10</span>
+  </button>
+
+  <div class="glass result-wrap" id="rw">
+    <div class="tabs-row" id="tabs"></div>
+    <div class="result-body" id="rbody"></div>
+  </div>
+
+</div>
+
+<script>
+/* ── starfield ── */
+(function(){
+  const c=document.getElementById('stars'),ctx=c.getContext('2d');
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  const stars=Array.from({length:180},()=>({
+    x:Math.random()*window.innerWidth,
+    y:Math.random()*window.innerHeight,
+    r:Math.random()*1.3+.2,
+    o:Math.random()*.7+.1,
+    sp:Math.random()*.004+.001
+  }));
+  let t=0;
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    t+=.01;
+    stars.forEach(s=>{
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,200,255,${s.o*(0.6+0.4*Math.sin(t*s.sp*100))})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── drag & drop ── */
+const dz=document.getElementById('dz'),fi=document.getElementById('fi');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+fi.addEventListener('change',()=>{if(fi.files[0])handleFile(fi.files[0])});
+
+let fName='',fData=null,fType='';
+function handleFile(f){
+  fName=f.name;fType=f.type;
+  const r=new FileReader();
+  r.onload=e=>{
+    fData=e.target.result;
+    document.getElementById('pill-wrap').innerHTML=`<div class="file-pill">✦ ${f.name}</div>`;
+  };
+  (f.type.startsWith('image/')||f.type==='application/pdf')?r.readAsDataURL(f):r.readAsText(f);
+}
+
+function getContent(){
+  const p=document.getElementById('notes').value.trim();
+  if(p)return{type:'text',content:p};
+  if(fData){
+    if(fType.startsWith('image/'))return{type:'image',content:fData,mimeType:fType};
+    if(fType==='application/pdf')return{type:'pdf',content:fData};
+    return{type:'text',content:fData};
+  }
+  return null;
+}
+
+/* ── tabs ── */
+let panels={};
+const tabsEl=document.getElementById('tabs'),rbody=document.getElementById('rbody'),rw=document.getElementById('rw');
+const LABELS={summary:'📋 Summary',quiz:'❓ Quiz',flashcards:'🃏 Flashcards',keypoints:'⭐ Key Points',eli5:'👧 ELI10'};
+
+function ensureTab(name){
+  if(panels[name])return;
+  const btn=document.createElement('button');
+  btn.className='tab-btn';btn.dataset.t=name;btn.textContent=LABELS[name];
+  btn.onclick=()=>showTab(name);
+  tabsEl.appendChild(btn);
+
+  const panel=document.createElement('div');
+  panel.className='panel';panel.dataset.p=name;
+  rbody.appendChild(panel);
+  panels[name]=true;
+}
+
+function showTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.dataset.p===name));
+}
+function setPanel(name,html){document.querySelector(`.panel[data-p="${name}"]`).innerHTML=html}
+
+async function go(type){
+  const data=getContent();
+  if(!data){alert('Please upload a file or paste your notes first ✦');return;}
+
+  ensureTab(type);
+  rw.classList.add('on');
+  showTab(type);
+  setPanel(type,`<div class="loading"><div class="ring"></div>AI is reading your notes…</div>`);
+
+  const PROMPTS={
+    summary:`You are an expert ICSE teacher. Summarise the study material in ICSE board exam style. Include: 1) Chapter Overview (2-3 sentences), 2) Key Concepts (bullet points), 3) Important Definitions, 4) Points to Remember. Use markdown: **bold**, # headings, - bullets.`,
+    quiz:`You are an ICSE exam setter. Create 4 MCQs. Return ONLY a JSON array: [{"q":"...","options":["A)...","B)...","C)...","D)..."],"correct":0,"explanation":"..."}]. No markdown fences.`,
+    flashcards:`You are a study assistant. Extract 6 key terms and create flashcards. Return ONLY a JSON array: [{"front":"Term or question","back":"Definition or answer"}]. No markdown fences.`,
+    keypoints:`You are an ICSE teacher. Extract key points grouped as: Important Facts, Key Dates/Numbers, Must Remember. Use markdown: # headings, - bullets, **bold** for emphasis.`,
+    eli5:`Explain the main ideas to a curious 10-year-old using simple language, fun analogies and short sentences. Be warm and encouraging. Start with "Okay so imagine…"`
+  };
+
+  try{
+    const uc=[];
+    if(data.type==='image'){
+      uc.push({type:'image',source:{type:'base64',media_type:data.mimeType,data:data.content.split(',')[1]}});
+      uc.push({type:'text',text:PROMPTS[type]});
+    }else if(data.type==='pdf'){
+      uc.push({type:'document',source:{type:'base64',media_type:'application/pdf',data:data.content.split(',')[1]}});
+      uc.push({type:'text',text:PROMPTS[type]});
+    }else{
+      uc.push({type:'text',text:PROMPTS[type]+'\n\n---\nSTUDY MATERIAL:\n'+data.content});
+    }
+
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:uc}]})
+    });
+    const json=await res.json();
+    const text=json.content.map(i=>i.text||'').join('');
+    render(type,text);
+  }catch(e){
+    setPanel(type,`<div class="empty"><div class="e-ico">✦</div><p>Something went wrong — please try again.</p></div>`);
+  }
+}
+
+/* ── renderers ── */
+function render(type,raw){
+  if(type==='summary'||type==='keypoints')renderProse(type,raw);
+  else if(type==='eli5')renderEli5(raw);
+  else if(type==='quiz')renderQuiz(raw);
+  else if(type==='flashcards')renderFC(raw);
+}
+
+function md2html(t){
+  return '<div class="prose">'+
+    t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+     .replace(/^#{1,3}\s+(.+)$/gm,'<h3>$1</h3>')
+     .replace(/^[-*]\s+(.+)$/gm,'<li>$1</li>')
+     .replace(/(<li>.*<\/li>)/gs,'<ul>$1</ul>')
+     .replace(/\n\n/g,'<br><br>')
+  +'</div>';
+}
+
+function renderProse(type,raw){
+  setPanel(type,`<div class="icse-chip">✦ ICSE Style</div>`+md2html(raw));
+}
+
+function renderEli5(raw){
+  setPanel('eli5',`<div class="eli-out"><div class="eli-hd">👧 Simple Explanation</div>${raw.replace(/\n/g,'<br>')}</div>`);
+}
+
+/* quiz */
+function renderQuiz(raw){
+  let qs;
+  try{qs=JSON.parse(raw.replace(/```json|```/g,'').trim())}
+  catch{setPanel('quiz',`<div class="empty"><div class="e-ico">✦</div><p>Could not parse quiz — try again.</p></div>`);return;}
+  window._qs={score:0,answered:0,total:qs.length,done:{}};
+  const score=`<div class="score-bar" id="qscore">Score: 0 / ${qs.length}</div>`;
+  const cards=qs.map((q,qi)=>{
+    const opts=q.options.map((o,oi)=>{
+      const lbl=String.fromCharCode(65+oi);
+      return`<div class="opt" id="o${qi}_${oi}" onclick="pick(${qi},${oi},${q.correct},${qs.length})">
+        <span class="olabel">${lbl}</span>${o.replace(/^[A-D]\)/,'').trim()}
+      </div>`;
+    }).join('');
+    return`<div class="qcard"><div class="q">Q${qi+1}. ${q.q}</div><div class="opts">${opts}</div>
+      <div class="qfb" id="fb${qi}">${q.explanation}</div></div>`;
+  }).join('');
+  setPanel('quiz',score+cards);
+}
+window.pick=function(qi,sel,correct,total){
+  document.querySelectorAll(`[id^="o${qi}_"]`).forEach((el,i)=>{
+    el.onclick=null;
+    if(i===correct)el.classList.add('ok');
+    else if(i===sel)el.classList.add('bad');
+  });
+  const fb=document.getElementById(`fb${qi}`);
+  fb.style.display='block';
+  fb.classList.add(sel===correct?'ok':'bad');
+  if(!window._qs.done[qi]){
+    window._qs.done[qi]=true;window._qs.answered++;
+    if(sel===correct)window._qs.score++;
+    const s=document.getElementById('qscore');
+    s.style.display='block';
+    s.textContent=`✦ Score: ${window._qs.score} / ${window._qs.total}`;
+  }
+};
+
+/* flashcards */
+let _fc=[],_fi=0,_flipped=false;
+function renderFC(raw){
+  try{_fc=JSON.parse(raw.replace(/```json|```/g,'').trim())}
+  catch{setPanel('flashcards',`<div class="empty"><div class="e-ico">✦</div><p>Could not parse flashcards.</p></div>`);return;}
+  _fi=0;_flipped=false;drawFC();
+}
+function drawFC(){
+  if(!_fc.length)return;
+  const c=_fc[_fi];
+  setPanel('flashcards',`
+    <div class="fc-wrap">
+      <div class="fc" id="fc" onclick="flipFC()">
+        <div class="fc-f">
+          <div class="fc-lbl">Question</div>
+          <div class="fc-txt">${c.front}</div>
+          <div class="fc-hint">tap to reveal answer</div>
+        </div>
+        <div class="fc-b">
+          <div class="fc-lbl">Answer</div>
+          <div class="fc-txt">${c.back}</div>
+          <div class="fc-hint">tap to flip back</div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-nav">
+      <button onclick="prevFC()">‹</button>
+      <span>${_fi+1} / ${_fc.length}</span>
+      <button onclick="nextFC()">›</button>
+    </div>`);
+}
+window.flipFC=()=>{_flipped=!_flipped;document.getElementById('fc').classList.toggle('flip',_flipped)};
+window.nextFC=()=>{_flipped=false;_fi=(_fi+1)%_fc.length;drawFC()};
+window.prevFC=()=>{_flipped=false;_fi=(_fi-1+_fc.length)%_fc.length;drawFC()};
+</script>
